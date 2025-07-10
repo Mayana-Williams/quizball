@@ -1,0 +1,116 @@
+const quizData = [
+  {
+    question: "What is the capital of France?",
+    options: ["Berlin", "London", "Paris", "Madrid"],
+    answer: "Paris"
+  },
+  {
+    question: "Which language runs in a web browser?",
+    options: ["Java", "C", "Python", "JavaScript"],
+    answer: "JavaScript"
+  },
+  {
+    question: "What does CSS stand for?",
+    options: [
+      "Central Style Sheets",
+      "Cascading Style Sheets",
+      "Cascading Simple Sheets",
+      "Cars SUVs Sailboats"
+    ],
+    answer: "Cascading Style Sheets"
+  }
+];
+
+const progressEl = document.getElementById('progress');
+const questionEl = document.getElementById('question');
+const answerOptionsEl = document.getElementById('answer-options');
+const nextBtn = document.getElementById('next-btn');
+const resultEl = document.getElementById('result');
+
+let currentQuestionIndex = 0;
+let score = 0;
+let selectedAnswer = null;
+let answered = false;
+
+function loadQuestion() {
+  selectedAnswer = null;
+  answered = false;
+  nextBtn.disabled = true;
+  resultEl.classList.add('hide');
+  nextBtn.textContent = 'Next';
+
+  const currentQuestion = quizData[currentQuestionIndex];
+  progressEl.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+  questionEl.textContent = currentQuestion.question;
+
+  // Clear previous options
+  answerOptionsEl.innerHTML = '';
+
+  currentQuestion.options.forEach(option => {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.textContent = option;
+    button.classList.add('answer-btn');
+    button.disabled = false; 
+    button.addEventListener('click', () => selectAnswer(button, option));
+    li.appendChild(button);
+    answerOptionsEl.appendChild(li);
+  });
+}
+
+function selectAnswer(button, answer) {
+  if (answered) return;
+
+  selectedAnswer = answer;
+  answered = true;
+  nextBtn.disabled = false;
+
+  // Disable all buttons and show correct/wrong colors
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === quizData[currentQuestionIndex].answer) {
+      btn.style.backgroundColor = '#4CAF50'; // Green for correct
+      btn.style.color = 'white';
+    } else if (btn === button) {
+      btn.style.backgroundColor = '#f44336'; // Red for wrong
+      btn.style.color = 'white';
+    }
+    btn.classList.remove('selected');
+  });
+
+  if (selectedAnswer === quizData[currentQuestionIndex].answer) {
+    score++;
+  }
+}
+
+nextBtn.addEventListener('click', () => {
+  if (!answered) return;
+
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex < quizData.length) {
+    loadQuestion();
+  } else {
+    showResult();
+  }
+});
+
+function showResult() {
+  progressEl.textContent = '';
+  questionEl.textContent = 'Quiz Completed!';
+  answerOptionsEl.innerHTML = '';
+  nextBtn.textContent = 'Restart Quiz';
+  nextBtn.disabled = false;
+  resultEl.textContent = `Your score: ${score} / ${quizData.length}`;
+  resultEl.classList.remove('hide');
+
+  nextBtn.onclick = () => {
+    currentQuestionIndex = 0;
+    score = 0;
+    nextBtn.onclick = null; // Remove restart handler after clicked
+    loadQuestion();
+  };
+}
+
+// Initialize quiz
+loadQuestion();
